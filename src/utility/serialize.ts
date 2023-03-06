@@ -1,5 +1,5 @@
 
-import { SignedPublicPreKeyType, DeviceType, PreKeyType } from '@privacyresearch/libsignal-protocol-typescript'
+import { SignedPublicPreKeyType, DeviceType, PreKeyType, KeyPairType } from '@privacyresearch/libsignal-protocol-typescript'
 import * as base64 from 'base64-js'
 
 export interface PublicDirectoryEntry {
@@ -39,6 +39,12 @@ export interface SerializedFullDirectoryEntry {
     signedPreKey: SignedPublicKey
     oneTimePreKeys: PublicPreKey[]
 }
+
+export interface SerializedKeyPair {
+    pubKey: string
+    privKey: string
+}
+
 
 
 export function serializeKeyRegistrationBundle(dv: FullDirectoryEntry): SerializedFullDirectoryEntry {
@@ -147,4 +153,18 @@ export function deserializePreKeyArray(keys: PublicPreKey[]): PreKeyType[] {
         deserialized.push(preKey);
     }
     return deserialized;
+}
+
+export function serializeKeyPairType(key: KeyPairType): SerializedKeyPair {
+    return {
+        pubKey: base64.fromByteArray(new Uint8Array(key.pubKey)),
+        privKey: base64.fromByteArray(new Uint8Array(key.privKey)),
+    }
+}
+
+export function deserializeKeyPairType(key: SerializedKeyPair): KeyPairType {
+    return {
+        pubKey: base64.toByteArray(key.pubKey),
+        privKey: base64.toByteArray(key.privKey),
+    }
 }

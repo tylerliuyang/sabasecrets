@@ -10,7 +10,7 @@ import {
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";
 import { deserializeKeyRegistrationBundle, FullDirectoryEntry, serializeKeyRegistrationBundle } from "../../utility/serialize";
-import { getKeyPair } from "./createID";
+import { getKeyPair, getKeyPairs } from "./createID";
 
 export const loadIdentity = async (signalStore: SignalProtocolStore) => {
     // storage in localstorage please fix
@@ -19,6 +19,16 @@ export const loadIdentity = async (signalStore: SignalProtocolStore) => {
 
     const identityKeyPair = getKeyPair('identityKey');
     signalStore.put('identityKey', identityKeyPair);
+
+    const preKeys = getKeyPairs("baseKeyId")!;
+    for (let key in preKeys) {
+        signalStore.storePreKey(`${key}`, preKeys[key])
+    }
+
+    const signedPreKeys = getKeyPairs("signedPreKeyId")!;
+    for (let key in signedPreKeys) {
+        signalStore.storeSignedPreKey(key, signedPreKeys[key])
+    }
 
     // const preKey = await KeyHelper.generatePreKey(baseKeyId)
     // getKeyPair(`${baseKeyId}`)

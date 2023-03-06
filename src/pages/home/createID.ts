@@ -9,7 +9,7 @@ import {
     MessageType,
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { deserializeKeyRegistrationBundle, FullDirectoryEntry, serializeKeyRegistrationBundle } from "../../utility/serialize";
+import { deserializeKeyPairType, deserializeKeyRegistrationBundle, FullDirectoryEntry, SerializedKeyPair, serializeKeyPairType, serializeKeyRegistrationBundle } from "../../utility/serialize";
 import * as base64 from 'base64-js'
 
 const storeKeyPair = (name: string, KeyPair: KeyPairType) => {
@@ -18,6 +18,8 @@ const storeKeyPair = (name: string, KeyPair: KeyPairType) => {
     const pubstr = base64.fromByteArray(new Uint8Array(KeyPair.pubKey));
     window.localStorage.setItem(name + 'pub', pubstr);
 }
+
+
 
 export const getKeyPair = (name: string): KeyPairType | undefined => {
     const pub = window.localStorage.getItem(name + 'pub');
@@ -32,28 +34,48 @@ export const getKeyPair = (name: string): KeyPairType | undefined => {
     return { privKey: privArrayBuffer, pubKey: pubArrayBuffer }
 }
 
+export const storeKeyPairs = (name: string, id: number, KeyPair: KeyPairType) => {
+    const localstorage = window.localStorage.getItem(name);
+    let values: { [id: number]: SerializedKeyPair } = {};
+    if (localstorage !== null) {
+        values = JSON.parse(localstorage);
+        values[id] = serializeKeyPairType(KeyPair);
+    } else {
+        values[id] = serializeKeyPairType(KeyPair);
+    }
+    window.localStorage.setItem(name, JSON.stringify(values));
+}
+
+export const getKeyPairs = (name: string) => {
+    const localstorage = window.localStorage.getItem(name);
+    if (localstorage === null) {
+        return
+    }
+    const keys: { [id: number]: SerializedKeyPair } = JSON.parse(localstorage);
+    const keyMap: { [id: number]: KeyPairType } = {};
+    for (let key in keys) {
+        keyMap[key] = deserializeKeyPairType(keys[key])
+    }
+    return keyMap;
+}
+
 export const createID = async (name: string,
     //  signalStore: SignalProtocolStore
 ) => {
     window.localStorage.setItem('name', name);
     const registrationId = KeyHelper.generateRegistrationId();
-    // storage in localstorage please fix
-    // signalStore.put(`registrationID`, registrationId)
     window.localStorage.setItem(`registrationID`, registrationId.toString());
 
     const identityKeyPair = await KeyHelper.generateIdentityKeyPair()
-    // signalStore.put('identityKey', identityKeyPair);
     storeKeyPair('identityKey', identityKeyPair);
 
     const baseKeyId = Math.floor(10000 * Math.random());
     const preKey = await KeyHelper.generatePreKey(baseKeyId)
-    storeKeyPair(`${baseKeyId}`, preKey.keyPair)
-    // signalStore.storePreKey(`${baseKeyId}`, preKey.keyPair)
+    storeKeyPairs("baseKeyId", baseKeyId, preKey.keyPair)
 
     const signedPreKeyId = Math.floor(10000 * Math.random());
     const signedPreKey = await KeyHelper.generateSignedPreKey(identityKeyPair, signedPreKeyId)
-    storeKeyPair(`${signedPreKeyId}`, signedPreKey.keyPair)
-    // signalStore.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair)
+    storeKeyPairs("signedPreKeyId", signedPreKeyId, signedPreKey.keyPair)
 
     // Now we register this with the server or other directory so all users can see them.
 

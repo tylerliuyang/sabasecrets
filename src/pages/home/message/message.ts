@@ -35,5 +35,6 @@ export async function encryptAndSendMessage(to: string, message: string): Promis
     const signalMessage = await cipher.encrypt(new TextEncoder().encode(JSON.stringify(cm)).buffer)
     // sendSignalProtocolMessage(to, window.localStorage.getItem("name"), signalMessage)
     sendMessage(to, signalMessage.body!);
-
 }
+
+// export function getMessagesAndDecrypt(address)
