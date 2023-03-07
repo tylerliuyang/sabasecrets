@@ -1,4 +1,4 @@
-import { deserializePreKeyArray } from '@/utility/serialize'
+import { deserializePreKeyArray } from '@/utility/serialize/serialize'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { directory, SignalDirectory } from './definitions/directory'
 import { AddPreKeysBody } from './definitions/interfaces'

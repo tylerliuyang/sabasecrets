@@ -1,5 +1,5 @@
-import { deserializeKeyPairType, serializeKeyPairType } from "@/utility/serialize";
-import { SerializedKeyPair } from "@/utility/serialize/types";
+import { deserializeKeyPairType, serializeKeyPairType } from "@/utility/serialize/serialize";
+import { SerializedKeyPair } from "@/utility/serialize/FullDirectoryEntry";
 import {
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";

@@ -9,8 +9,8 @@ import {
     MessageType,
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { deserializeKeyPairType, deserializeKeyRegistrationBundle, serializeKeyPairType, serializeKeyRegistrationBundle } from "../serialize";
-import { FullDirectoryEntry, SerializedKeyPair } from "../serialize/types";
+import { deserializeKeyPairType, deserializeKeyRegistrationBundle, serializeKeyPairType, serializeKeyRegistrationBundle } from "../serialize/serialize";
+import { FullDirectoryEntry, SerializedKeyPair } from "../serialize/FullDirectoryEntry";
 import * as base64 from 'base64-js'
 import { storeKeyPair, storeKeyPairs } from "./localstorage/localstorage";
 

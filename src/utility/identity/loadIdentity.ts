@@ -9,8 +9,8 @@ import {
     MessageType,
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { deserializeKeyRegistrationBundle, serializeKeyRegistrationBundle } from "../serialize";
-import { FullDirectoryEntry } from "../serialize/types";
+import { deserializeKeyRegistrationBundle, serializeKeyRegistrationBundle } from "../serialize/serialize";
+import { FullDirectoryEntry } from "../serialize/FullDirectoryEntry";
 import { getKeyPair, getKeyPairs } from "./localstorage/localstorage";
 
 export const loadIdentity = async (signalStore: SignalProtocolStore) => {

@@ -1,8 +1,7 @@
 
 import { SignedPublicPreKeyType, DeviceType, PreKeyType, KeyPairType } from '@privacyresearch/libsignal-protocol-typescript'
 import * as base64 from 'base64-js'
-import { FullDirectoryEntry, SerializedFullDirectoryEntry, SignedPublicKey, PublicPreKey, PublicPreKeyBundle, SerializedKeyPair } from './serialize/types'
-
+import { FullDirectoryEntry, SerializedFullDirectoryEntry, SignedPublicKey, PublicPreKey, PublicPreKeyBundle, SerializedKeyPair } from './FullDirectoryEntry'
 
 export function serializeKeyRegistrationBundle(dv: FullDirectoryEntry): SerializedFullDirectoryEntry {
     const identityKey = base64.fromByteArray(new Uint8Array(dv.identityKey))

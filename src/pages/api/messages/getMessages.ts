@@ -1,4 +1,4 @@
-import { deserializePreKeyArray } from '@/utility/serialize'
+import { deserializePreKeyArray } from '@/utility/serialize/serialize'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { messages } from './definitions/messages'
 import { AddMessage, GetMessages } from './definitions/interfaces'

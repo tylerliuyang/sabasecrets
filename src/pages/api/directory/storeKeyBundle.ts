@@ -1,4 +1,4 @@
-import { deserializeKeyBundle, deserializeKeyRegistrationBundle } from '@/utility/serialize'
+import { deserializeKeyBundle, deserializeKeyRegistrationBundle } from '@/utility/serialize/serialize'
 import { DeviceType } from '@privacyresearch/libsignal-protocol-typescript'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { directory, SignalDirectory } from './definitions/directory'
