@@ -1,6 +1,6 @@
 1. Check if message franking is built into libsignal
 
-1.5. add the ability to add multiple one time keys so people can actually send multiple messages
+1.5. Change storage to database for persistent state
 
 2. refactor code (specifically make locations and such consistent)
 
