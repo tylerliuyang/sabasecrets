@@ -1,5 +1,7 @@
 1. Check if message franking is built into libsignal
 
+1.5. add the ability to add multiple one time keys so people can actually send multiple messages
+
 2. refactor code (specifically make locations and such consistent)
 
 3. try to add interfaces and type more things, especially api (maybe trpc in the future?)
