@@ -6,14 +6,14 @@ import { AddMessage, GetMessages } from './definitions/interfaces'
 
 export default function handler(
     req: NextApiRequest,
-    res: NextApiResponse<string>
+    res: NextApiResponse<object>
 ) {
     // USE SerializePreKeyArray to serialize the PreKeys before calling
     if (req.method !== "POST") {
-        res.status(405).send('Only POST requests allowed')
+        res.status(405).send({ message: 'Only POST requests allowed' })
         return
     }
     const body: GetMessages = JSON.parse(req.body);
 
-    res.status(200).json(JSON.stringify(messages.getMessages(body.address)));
-}
+    res.status(200).json({ message: messages.getMessages(body.address) })
+};

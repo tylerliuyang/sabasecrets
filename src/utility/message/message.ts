@@ -4,7 +4,7 @@ import { ProcessedChatMessage } from "./types";
 import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/storage-type";
 import { sendMessage } from "./api";
-import { loadIdentity } from "../loadIdentity";
+import { loadIdentity } from "../identity/loadIdentity";
 
 export async function encryptAndSendMessage(to: string, message: string): Promise<void> {
     const value = await fetch('/api/directory/getPreKeyBundle', {
@@ -18,8 +18,6 @@ export async function encryptAndSendMessage(to: string, message: string): Promis
     loadIdentity(store);
     const address = new SignalProtocolAddress(to, 1)
 
-    console.log(bundle);
-    console.log(bundle.identityKey);
     const sessionBuilder = new SessionBuilder(store, address).processPreKey(bundle);
 
     const cipher = new SessionCipher(store, address)
@@ -37,4 +35,28 @@ export async function encryptAndSendMessage(to: string, message: string): Promis
     sendMessage(to, signalMessage.body!);
 }
 
-// export function getMessagesAndDecrypt(address)
+interface res {
+    message: [string]
+}
+
+export async function getMessagesAndDecrypt(address: string) {
+    const res = await fetch('/api/messages/getMessages', {
+        method: "POST",
+        body: JSON.stringify({ address: address })
+    })
+    const encodedmessages: res = await res.json();
+    console.log(encodedmessages);
+
+    let store = new SignalProtocolStore();
+    loadIdentity(store);
+    const cipher = new SessionCipher(store, new SignalProtocolAddress(address, 1))
+
+    const decodedmessages: string[] = [];
+    for (let i in encodedmessages.message) {
+        const plaintextBytes = await cipher.decryptPreKeyWhisperMessage(encodedmessages.message[i], 'binary')
+        const plaintext = new TextDecoder().decode(new Uint8Array(plaintextBytes))
+        let cm = JSON.parse(plaintext) as ProcessedChatMessage
+        decodedmessages.push(cm.body);
+    }
+    return decodedmessages
+}

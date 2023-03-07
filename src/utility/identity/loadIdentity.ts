@@ -9,13 +9,13 @@ import {
     MessageType,
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { deserializeKeyRegistrationBundle, FullDirectoryEntry, serializeKeyRegistrationBundle } from "../../utility/serialize";
+import { deserializeKeyRegistrationBundle, FullDirectoryEntry, serializeKeyRegistrationBundle } from "../serialize";
 import { getKeyPair, getKeyPairs } from "./createID";
 
 export const loadIdentity = async (signalStore: SignalProtocolStore) => {
     // storage in localstorage please fix
     const registrationId = window.localStorage.getItem(`registrationID`);
-    signalStore.put(`registrationID`, registrationId!)
+    signalStore.put(`registrationID`, parseInt(registrationId!))
 
     const identityKeyPair = getKeyPair('identityKey');
     signalStore.put('identityKey', identityKeyPair);

@@ -8,13 +8,11 @@ export class SignalMessages {
     private _data: { [address: string]: [string] } = {}
 
     storeMessage(address: string, message: string): void {
-        console.log("address, ", address)
         if (this._data[address] !== undefined) {
             this._data[address].push(message);
         } else {
             this._data[address] = [message];
         }
-        console.log(this._data)
     }
 
     getMessages(address: string): [string] {

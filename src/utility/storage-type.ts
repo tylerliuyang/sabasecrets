@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StorageType, Direction, SessionRecordType, SignalProtocolAddress, PreKeyPairType, SignedPreKeyPairType } from '@privacyresearch/libsignal-protocol-typescript'
 
 // Type guards
@@ -77,7 +76,6 @@ export class SignalProtocolStore implements StorageType {
     isTrustedIdentity(
         identifier: string,
         identityKey: ArrayBuffer,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _direction: Direction
     ): Promise<boolean> {
         if (identifier === null || identifier === undefined) {

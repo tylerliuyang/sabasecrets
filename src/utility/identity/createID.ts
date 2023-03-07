@@ -9,7 +9,7 @@ import {
     MessageType,
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { deserializeKeyPairType, deserializeKeyRegistrationBundle, FullDirectoryEntry, SerializedKeyPair, serializeKeyPairType, serializeKeyRegistrationBundle } from "../../utility/serialize";
+import { deserializeKeyPairType, deserializeKeyRegistrationBundle, FullDirectoryEntry, SerializedKeyPair, serializeKeyPairType, serializeKeyRegistrationBundle } from "../serialize";
 import * as base64 from 'base64-js'
 
 const storeKeyPair = (name: string, KeyPair: KeyPairType) => {
@@ -35,8 +35,9 @@ export const getKeyPair = (name: string): KeyPairType | undefined => {
 }
 
 export const storeKeyPairs = (name: string, id: number, KeyPair: KeyPairType) => {
-    const localstorage = window.localStorage.getItem(name);
     let values: { [id: number]: SerializedKeyPair } = {};
+
+    const localstorage = window.localStorage.getItem(name);
     if (localstorage !== null) {
         values = JSON.parse(localstorage);
         values[id] = serializeKeyPairType(KeyPair);

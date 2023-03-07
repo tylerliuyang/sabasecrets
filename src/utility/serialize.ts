@@ -164,7 +164,7 @@ export function serializeKeyPairType(key: KeyPairType): SerializedKeyPair {
 
 export function deserializeKeyPairType(key: SerializedKeyPair): KeyPairType {
     return {
-        pubKey: base64.toByteArray(key.pubKey),
-        privKey: base64.toByteArray(key.privKey),
+        pubKey: base64.toByteArray(key.pubKey).buffer,
+        privKey: base64.toByteArray(key.privKey).buffer,
     }
 }
