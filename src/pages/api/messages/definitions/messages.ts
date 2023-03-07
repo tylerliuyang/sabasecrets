@@ -1,4 +1,5 @@
-import { FullDirectoryEntry, SerializedFullDirectoryEntry, serializeKeyRegistrationBundle } from "@/utility/serialize";
+import { serializeKeyRegistrationBundle } from "@/utility/serialize";
+import { FullDirectoryEntry, SerializedFullDirectoryEntry } from "@/utility/serialize/types";
 import { SignedPublicPreKeyType, DeviceType, PreKeyType } from "@privacyresearch/libsignal-protocol-typescript";
 import type { NextApiRequest, NextApiResponse } from 'next'
 

@@ -1,8 +1,9 @@
-import { deserializeKeyBundle, PublicPreKeyBundle } from "@/utility/serialize";
+import { deserializeKeyBundle } from "@/utility/serialize";
+import { PublicPreKeyBundle } from "@/utility/serialize/types";
 import { DeviceType, SessionBuilder, SessionCipher, SignalProtocolAddress } from "@privacyresearch/libsignal-protocol-typescript";
 import { ProcessedChatMessage } from "./types";
 import { v4 as uuid } from 'uuid';
-import { SignalProtocolStore } from "@/utility/storage-type";
+import { SignalProtocolStore } from "@/utility/signalStore";
 import { sendMessage } from "./api";
 import { loadIdentity } from "../identity/loadIdentity";
 

@@ -1,50 +1,7 @@
 
 import { SignedPublicPreKeyType, DeviceType, PreKeyType, KeyPairType } from '@privacyresearch/libsignal-protocol-typescript'
 import * as base64 from 'base64-js'
-
-export interface PublicDirectoryEntry {
-    identityKey: ArrayBuffer
-    signedPreKey: SignedPublicPreKeyType
-    oneTimePreKey?: ArrayBuffer
-}
-
-export interface FullDirectoryEntry {
-    registrationId: number
-    identityKey: ArrayBuffer
-    signedPreKey: SignedPublicPreKeyType
-    oneTimePreKeys: PreKeyType[]
-}
-
-export interface PublicPreKey {
-    keyId: number
-    publicKey: string
-}
-
-export interface SignedPublicKey {
-    keyId: number
-    publicKey: string
-    signature: string
-}
-
-export interface PublicPreKeyBundle {
-    identityKey: string
-    signedPreKey: SignedPublicKey
-    preKey?: PublicPreKey
-    registrationId: number
-}
-
-export interface SerializedFullDirectoryEntry {
-    registrationId: number
-    identityKey: string
-    signedPreKey: SignedPublicKey
-    oneTimePreKeys: PublicPreKey[]
-}
-
-export interface SerializedKeyPair {
-    pubKey: string
-    privKey: string
-}
-
+import { FullDirectoryEntry, SerializedFullDirectoryEntry, SignedPublicKey, PublicPreKey, PublicPreKeyBundle, SerializedKeyPair } from './serialize/types'
 
 
 export function serializeKeyRegistrationBundle(dv: FullDirectoryEntry): SerializedFullDirectoryEntry {
@@ -55,10 +12,7 @@ export function serializeKeyRegistrationBundle(dv: FullDirectoryEntry): Serializ
         signature: base64.fromByteArray(new Uint8Array(dv.signedPreKey.signature)),
     }
 
-    const oneTimePreKeys: PublicPreKey[] = dv.oneTimePreKeys.map((pk) => ({
-        keyId: pk.keyId,
-        publicKey: base64.fromByteArray(new Uint8Array(pk.publicKey)),
-    }))
+    const oneTimePreKeys = serializePreKeyArray(dv.oneTimePreKeys)
 
     return {
         identityKey,
@@ -70,17 +24,13 @@ export function serializeKeyRegistrationBundle(dv: FullDirectoryEntry): Serializ
 
 export function deserializeKeyRegistrationBundle(dv: SerializedFullDirectoryEntry): FullDirectoryEntry {
     const identityKey = base64.toByteArray(dv.identityKey).buffer;
-    console.log("tset")
     const signedPreKey: SignedPublicPreKeyType = {
         keyId: dv.signedPreKey.keyId,
         publicKey: base64.toByteArray(dv.signedPreKey.publicKey).buffer,
         signature: base64.toByteArray(dv.signedPreKey.signature).buffer,
     }
 
-    const oneTimePreKeys: PreKeyType[] = dv.oneTimePreKeys.map((pk) => ({
-        keyId: pk.keyId,
-        publicKey: base64.toByteArray(pk.publicKey).buffer,
-    }))
+    const oneTimePreKeys = deserializePreKeyArray(dv.oneTimePreKeys)
 
     return {
         identityKey,

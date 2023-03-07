@@ -1,4 +1,4 @@
-import { PublicPreKey, SerializedFullDirectoryEntry } from '@/utility/serialize';
+import { PublicPreKey, SerializedFullDirectoryEntry } from "@/utility/serialize/types";
 import { PreKeyType } from '@privacyresearch/libsignal-protocol-typescript';
 import type { NextApiRequest } from 'next'
 

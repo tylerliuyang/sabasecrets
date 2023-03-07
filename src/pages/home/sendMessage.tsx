@@ -1,15 +1,10 @@
-import Head from "next/head";
-import Image from "next/image";
 import { Inter } from "next/font/google";
-import styles from "@/styles/Home.module.css";
-import { createID } from "@/utility/identity/createID";
 import { useEffect, useState } from "react";
 import {
   encryptAndSendMessage,
   getMessagesAndDecrypt,
-} from "../../../utility/message/message";
-import { SignalProtocolStore } from "@/utility/storage-type";
-const inter = Inter({ subsets: ["latin"] });
+} from "../../utility/message/message";
+import { SignalProtocolStore } from "@/utility/signalStore";
 
 let store = new SignalProtocolStore();
 
@@ -34,7 +29,10 @@ export default function Message() {
       <input onChange={(e) => setMessage(e.target.value)}></input>
       <input
         type="button"
-        onClick={() => encryptAndSendMessage(other, message)}
+        onClick={() => {
+          encryptAndSendMessage(other, message);
+          setMessages([...messages, message]);
+        }}
         value="submit"
       ></input>
       <input
@@ -42,8 +40,6 @@ export default function Message() {
         onClick={() => {
           getMessagesAndDecrypt(name).then((v) => {
             setMessages(v);
-            console.log(v);
-            console.log(messages);
           });
         }}
         value="refresh"

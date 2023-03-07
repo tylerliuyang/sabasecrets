@@ -19,6 +19,7 @@ export default function handler(
     const body: GetPreKeyBody = JSON.parse(req.body);
     const bundle = directory.getPreKeyBundle(body.address);
     if (bundle === undefined) {
+        res.status(409).json("Failed to get PreKey!");
         return;
     }
     let PreKeyBundle = serializeKeyBundle(bundle);

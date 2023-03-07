@@ -1,4 +1,4 @@
-import { SignalProtocolStore } from "@/utility/storage-type";
+import { SignalProtocolStore } from "@/utility/signalStore";
 import {
     KeyHelper,
     SignedPublicPreKeyType,
@@ -9,8 +9,9 @@ import {
     MessageType,
     KeyPairType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { deserializeKeyRegistrationBundle, FullDirectoryEntry, serializeKeyRegistrationBundle } from "../serialize";
-import { getKeyPair, getKeyPairs } from "./createID";
+import { deserializeKeyRegistrationBundle, serializeKeyRegistrationBundle } from "../serialize";
+import { FullDirectoryEntry } from "../serialize/types";
+import { getKeyPair, getKeyPairs } from "./localstorage/localstorage";
 
 export const loadIdentity = async (signalStore: SignalProtocolStore) => {
     // storage in localstorage please fix
@@ -30,14 +31,4 @@ export const loadIdentity = async (signalStore: SignalProtocolStore) => {
         signalStore.storeSignedPreKey(key, signedPreKeys[key])
     }
 
-    // const preKey = await KeyHelper.generatePreKey(baseKeyId)
-    // getKeyPair(`${baseKeyId}`)
-    // signalStore.storePreKey(`${baseKeyId}`, preKey.keyPair)
-
-    // const signedPreKeyId = Math.floor(10000 * Math.random());
-    // const signedPreKey = await KeyHelper.generateSignedPreKey(identityKeyPair, signedPreKeyId)
-    // storeKeyPair(`${signedPreKeyId}`, signedPreKey.keyPair)
-    // signalStore.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair)
-
-    // Now we register this with the server or other directory so all users can see them.
 }

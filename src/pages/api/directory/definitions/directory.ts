@@ -1,4 +1,5 @@
-import { FullDirectoryEntry, SerializedFullDirectoryEntry, serializeKeyRegistrationBundle } from "@/utility/serialize";
+import { serializeKeyRegistrationBundle } from "@/utility/serialize";
+import { FullDirectoryEntry, SerializedFullDirectoryEntry } from "@/utility/serialize/types";
 import { SignedPublicPreKeyType, DeviceType, PreKeyType } from "@privacyresearch/libsignal-protocol-typescript";
 import type { NextApiRequest, NextApiResponse } from 'next'
 
@@ -12,6 +13,10 @@ export class SignalDirectory {
     }
 
     addOneTimePreKeys(address: string, keys: PreKeyType[]): void {
+        if (this._data[address] === undefined) {
+            console.log("Failed to add PreKeys to ", address);
+            return;
+        }
         this._data[address].oneTimePreKeys.unshift(...keys)
     }
 
