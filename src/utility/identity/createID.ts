@@ -53,7 +53,7 @@ export const createID = async (name: string,
         oneTimePreKeys: [publicPreKey],
     }
 
-    fetch('/api/directory/storeKeyBundle', {
+    fetch('/api/directorydatabase/storeKeyBundle', {
         method: "POST",
         body: JSON.stringify({ address: name, bundle: serializeKeyRegistrationBundle(bundle) })
     })
