@@ -6,9 +6,10 @@ import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/signalStore";
 import { sendMessage } from "./api";
 import { loadIdentity } from "../identity/loadIdentity";
+import { DATABASE_URL } from "../identity/url";
 
 export async function encryptAndSendMessage(to: string, message: string): Promise<void> {
-    const value = await fetch('/api/directory/getPreKeyBundle', {
+    const value = await fetch(DATABASE_URL + '/getPreKeyBundle', {
         method: "POST",
         body: JSON.stringify({ address: to })
     });

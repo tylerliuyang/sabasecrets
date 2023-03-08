@@ -12,26 +12,27 @@ datasource db {
 }
 
 model Directory {
-  name           String         @id
-  registrationId Int
-  identityKey    String
-  signedPreKey   SignedPreKey[]
+  name                      String       @id @unique
+  registrationId            Int
+  identityKey               String
+  signedPreKey              SignedPreKey @relation(fields: [signedPreKeyDirectoryName], references: [directoryName])
+  signedPreKeyDirectoryName String       @unique
+
   oneTimePreKeys PublicPreKey[]
 }
 
 model SignedPreKey {
-  id            Int        @id @default(autoincrement())
+  directoryName String     @id @unique
   keyId         Int
   publicKey     String
   signature     String
-  Directory     Directory? @relation(fields: [directoryName], references: [name])
-  directoryName String?
+  Directory     Directory?
 }
 
 model PublicPreKey {
-  id            Int        @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   keyId         Int
   publicKey     String
-  Directory     Directory? @relation(fields: [directoryName], references: [name])
-  directoryName String?
+  Directory     Directory @relation(fields: [directoryName], references: [name])
+  directoryName String
 }

@@ -13,6 +13,7 @@ import { deserializeKeyPairType, deserializeKeyRegistrationBundle, serializeKeyP
 import { FullDirectoryEntry, SerializedKeyPair } from "../serialize/FullDirectoryEntry";
 import * as base64 from 'base64-js'
 import { storeKeyPair, storeKeyPairs } from "./localstorage/localstorage";
+import { DATABASE_URL } from "./url";
 
 
 export const createID = async (name: string,
@@ -53,7 +54,7 @@ export const createID = async (name: string,
         oneTimePreKeys: [publicPreKey],
     }
 
-    fetch('/api/directorydatabase/storeKeyBundle', {
+    fetch(DATABASE_URL + 'storeKeyBundle', {
         method: "POST",
         body: JSON.stringify({ address: name, bundle: serializeKeyRegistrationBundle(bundle) })
     })

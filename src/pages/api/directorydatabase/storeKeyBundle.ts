@@ -18,8 +18,10 @@ async function main(obj: StoreKeyBody) {
     const signedPreKeyCreate = {
         keyId: obj.bundle.signedPreKey.keyId,
         publicKey: obj.bundle.signedPreKey.publicKey,
-        signature: obj.bundle.signedPreKey.signature
+        signature: obj.bundle.signedPreKey.signature,
+        directoryName: obj.address
     }
+
 
     const storeKeyBundle = await prisma.directory.create({
         data: {
@@ -29,10 +31,7 @@ async function main(obj: StoreKeyBody) {
             oneTimePreKeys: { createMany: oneTimePreKeyCreate },
             signedPreKey: { create: signedPreKeyCreate }
         },
-
     })
-
-    console.log(storeKeyBundle)
 }
 
 export default function handler(
