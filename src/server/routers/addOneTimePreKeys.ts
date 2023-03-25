@@ -6,19 +6,13 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { z } from 'zod';
 import { procedure, router } from '../trpc';
-import { addAddress, addPreKeyArray, PublicPreKeyProcedure } from './zod_types';
-
-
-export interface AddPreKeysBody {
-    address: string;
-    keys: PublicPreKey[];
-}
+import { PublicPreKeyProcedure } from './zod_types';
 
 const prisma = new PrismaClient()
 
-export const AppRouter = router({
-    addOneTimePreKey: PublicPreKeyProcedure
-        .query(({ input }) => {
+export const addOneTimePreKeysRouter = router({
+    procedure: PublicPreKeyProcedure
+        .mutation(({ input }) => {
             const oneTimePreKeyCreate = {
                 data: input.keys.map((PreKey) => {
                     return {

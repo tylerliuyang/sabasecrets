@@ -13,7 +13,7 @@ import { deserializeKeyPairType, deserializeKeyRegistrationBundle, serializeKeyP
 import { FullDirectoryEntry, SerializedKeyPair } from "../serialize/FullDirectoryEntry";
 import * as base64 from 'base64-js'
 import { getKeyPair, storeKeyPairs } from "./localstorage/localstorage";
-import { DATABASE_URL } from "./url";
+import { trpc } from "../trpc";
 
 
 export const addPreKey = async (num: number
@@ -40,10 +40,7 @@ export const addPreKey = async (num: number
         console.log(keys);
     }
 
-    // Now we register this with the server or other directory so all users can see them.
-    fetch(DATABASE_URL + 'addOneTimePreKeys', {
-        method: "POST",
-        body: JSON.stringify({ address: name, keys: serializePreKeyArray(keys) })
-    })
+    return { address: name!, keys: serializePreKeyArray(keys) };
 
+    // trpc.addOneTimePreKeys.procedure.useQuery({ address: name!, keys: serializePreKeyArray(keys) })
 }

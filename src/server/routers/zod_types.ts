@@ -3,7 +3,49 @@
 import { ProcedureBuilder } from '@trpc/server';
 import { z } from 'zod';
 import { procedure } from '../trpc';
-export const a: ProcedureBuilder<any> = procedure.input(
+
+const SignedPublicKey = z.object({
+    keyId: z.number(),
+    publicKey: z.string(),
+    signature: z.string(),
+})
+
+const PublicPreKey = z.object({
+    keyId: z.number(),
+    publicKey: z.string()
+})
+
+export const PublicPreKeyProcedure = procedure.input(
+    z.object({
+        keys: z.array(
+            PublicPreKey
+        ),
+        address: z.string()
+    })
+);
+
+export const GetPreKeyProcedure = procedure.input(
+    z.object({
+        address: z.string()
+    })
+);
+
+
+
+export const StoreKeyProcedure = procedure.input(
+    z.object({
+        address: z.string(),
+        bundle: z.object({
+            registrationId: z.number(),
+            identityKey: z.string(),
+            signedPreKey: SignedPublicKey,
+            oneTimePreKeys: z.array(PublicPreKey)
+        })
+    })
+);
+
+
+export const checkDatabase = procedure.input(
     z.object({
         keys: z.array(
             z.object({
@@ -14,33 +56,6 @@ export const a: ProcedureBuilder<any> = procedure.input(
     })
 );
 
-export const PublicPreKeyProcedure = addAddress(addPreKeyArray(procedure));
-PublicPreKeyProcedure.query(({ input }) => { input.address; input.keys; })
-
-// export const Address = procedure.input(
-//     z.object({
-//         address: z.string(),
-//     })
-// )
-
-export function addAddress(a: ProcedureBuilder<any>) {
-    return a.input(z.object({
-        address: z.string()
-    }))
-}
-
-export function addPreKeyArray(a: ProcedureBuilder<any>) {
-    return a.input(
-        z.object({
-            keys: z.array(
-                z.object({
-                    keyId: z.number(),
-                    publicKey: z.string(),
-                })
-            )
-        })
-    )
-}
 
 
 

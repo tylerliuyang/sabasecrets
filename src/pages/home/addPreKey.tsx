@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { addPreKey } from "@/utility/identity/addPreKey";
+import { trpc } from "@/utility/trpc";
 
 export default function Home() {
   const [val, setVal] = useState(0);
+
+  const mutation = trpc.addOneTimePreKeys.procedure.useMutation();
+
   return (
     <div>
       <input
@@ -13,8 +17,9 @@ export default function Home() {
       <input
         type="button"
         onClick={() => {
-          console.log(val);
-          addPreKey(val);
+          addPreKey(val).then((bundle) => {
+            mutation.mutate(bundle);
+          });
         }}
         value="submit"
       ></input>

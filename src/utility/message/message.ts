@@ -6,15 +6,11 @@ import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/signalStore";
 import { sendMessage } from "./api";
 import { loadIdentity } from "../identity/loadIdentity";
-import { DATABASE_URL } from "../identity/url";
+import { trpc } from "../trpc";
 
-export async function encryptAndSendMessage(to: string, message: string): Promise<void> {
-    const value = await fetch(DATABASE_URL + '/getPreKeyBundle', {
-        method: "POST",
-        body: JSON.stringify({ address: to })
-    });
-    const a: PublicPreKeyBundle = JSON.parse(await value.json());
-    const bundle: DeviceType = deserializeKeyBundle(a);
+
+export async function encryptAndSendMessage(to: string, message: string, value: PublicPreKeyBundle): Promise<void> {
+    const bundle: DeviceType = deserializeKeyBundle(value);
 
     let store = new SignalProtocolStore();
     loadIdentity(store);
