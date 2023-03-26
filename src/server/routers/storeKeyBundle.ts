@@ -8,8 +8,10 @@ const prisma = new PrismaClient()
 
 export const storeKeyBundleRouter = router({
     procedure: StoreKeyProcedure.mutation(async ({ input }) => {
-        console.log(input);
-        console.log("SOEUEHRREWBUEWUK");
+        if (await prisma.directory.count({ where: { name: input.address } }) > 0) {
+            return "Cannot reinstantiate a user with a preexisting name.";
+        };
+
         const oneTimePreKeyCreate = {
             data: input.bundle.oneTimePreKeys.map((PreKey) => {
                 return {

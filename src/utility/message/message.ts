@@ -4,9 +4,8 @@ import { DeviceType, SessionBuilder, SessionCipher, SignalProtocolAddress } from
 import { ProcessedChatMessage } from "./types";
 import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/signalStore";
-import { sendMessage } from "./api";
+import { getMessages, sendMessage } from "./api";
 import { loadIdentity } from "../identity/loadIdentity";
-import { trpc } from "../trpc";
 
 
 export async function encryptAndSendMessage(to: string, message: string, value: PublicPreKeyBundle): Promise<void> {
@@ -38,12 +37,8 @@ interface res {
 }
 
 export async function getMessagesAndDecrypt(address: string) {
-    const res = await fetch('/api/messages/getMessages', {
-        method: "POST",
-        body: JSON.stringify({ address: address })
-    })
+    const res = await getMessages(address);
     const encodedmessages: res = await res.json();
-    console.log(encodedmessages);
 
     let store = new SignalProtocolStore();
     loadIdentity(store);
