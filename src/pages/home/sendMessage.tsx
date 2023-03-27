@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google";
 import { useEffect, useState } from "react";
 import {
-  encryptAndSendMessage,
+  encryptMessage,
   getMessagesAndDecrypt,
 } from "../../utility/message/message";
 import { SignalProtocolStore } from "@/utility/signalStore";
@@ -10,23 +10,37 @@ import { trpc } from "@/utility/trpc";
 let store = new SignalProtocolStore();
 
 export default function Message() {
-  const [name, setName] = useState<string | null>();
+  const [name, setName] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [other, setOther] = useState<string>("");
   const [messages, setMessages] = useState<string[]>([]);
 
-  const { data, refetch } = trpc.getPreKeyBundle.procedure.useQuery(
+  const { refetch: refetchBundle } = trpc.getPreKeyBundle.procedure.useQuery(
     {
       address: other,
     },
     { enabled: false }
   );
 
+  const mutationSendMessage = trpc.storeMessage.procedure.useMutation();
+  const { refetch: refetchMessages } = trpc.getMessages.procedure.useQuery(
+    {
+      reciever: name,
+      sender: other,
+    },
+    { enabled: false }
+  );
+
   useEffect(() => {
-    setName(window.localStorage.getItem("name"));
+    const name = window.localStorage.getItem("name");
+    if (name === null) {
+      setName("");
+    } else {
+      setName(name);
+    }
   }, []);
 
-  if (name == null) {
+  if (name == "") {
     return <div>Please login</div>;
   }
 
@@ -38,10 +52,15 @@ export default function Message() {
 
       <input
         type="button"
-        onClick={() => {
-          refetch().then(({ data }) => {
-            encryptAndSendMessage(other, message, data!);
+        onClick={async () => {
+          const { data } = await refetchBundle();
+          const value = await encryptMessage(other, message, data!);
+          mutationSendMessage.mutate({
+            message: JSON.stringify(value.body!),
+            sender: name,
+            reciever: other,
           });
+
           setMessages([...messages, message]);
         }}
         value="submit"
@@ -49,10 +68,10 @@ export default function Message() {
 
       <input
         type="button"
-        onClick={() => {
-          getMessagesAndDecrypt(name).then((v) => {
-            setMessages(v);
-          });
+        onClick={async () => {
+          const { data } = await refetchMessages();
+          const messages = await getMessagesAndDecrypt(data!, name);
+          setMessages(messages);
         }}
         value="refresh"
       ></input>

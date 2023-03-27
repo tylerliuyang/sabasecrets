@@ -56,7 +56,20 @@ export const checkDatabase = procedure.input(
     })
 );
 
+export const storeMessage = procedure.input(
+    z.object({
+        reciever: z.string(),
+        sender: z.string(),
+        message: z.string()
+    })
+)
 
+export const getMessages = procedure.input(
+    z.object({
+        reciever: z.string(),
+        sender: z.string(),
+    })
+)
 
 
 // export interface StoreKeyBody {

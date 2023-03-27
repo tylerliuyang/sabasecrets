@@ -24,7 +24,7 @@ export const sendMessage = (to: string, message: string) => {
 }
 
 export const getMessages = (address: string) => {
-    fetch('/api/messages/getMessages', {
+    return fetch('/api/messages/getMessages', {
         method: "POST",
         body: JSON.stringify({ address: address })
     })

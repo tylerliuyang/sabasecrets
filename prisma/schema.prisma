@@ -19,6 +19,8 @@ model Directory {
   signedPreKeyDirectoryName String       @unique
 
   oneTimePreKeys PublicPreKey[]
+  sideChannel    Message[]      @relation(name: "sender")
+  SideChannels   Message[]      @relation(name: "reciever")
 }
 
 model SignedPreKey {
@@ -35,4 +37,14 @@ model PublicPreKey {
   publicKey     String
   Directory     Directory @relation(fields: [directoryName], references: [name])
   directoryName String
+}
+
+model Message {
+  id                Int       @id @default(autoincrement())
+  senderDirectory   Directory @relation(fields: [sender], references: [name], name: "sender")
+  recieverDirectory Directory @relation(fields: [receiver], references: [name], name: "reciever")
+  sender            String
+  receiver          String
+
+  message String
 }
