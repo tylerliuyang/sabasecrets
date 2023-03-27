@@ -12,7 +12,7 @@ const prisma = new PrismaClient()
 
 export const addOneTimePreKeysRouter = router({
     procedure: PublicPreKeyProcedure
-        .mutation(({ input }) => {
+        .mutation(async ({ input }) => {
             const oneTimePreKeyCreate = {
                 data: input.keys.map((PreKey) => {
                     return {
@@ -23,9 +23,9 @@ export const addOneTimePreKeysRouter = router({
                 })
             };
 
-            prisma.publicPreKey.createMany(
+            const value = await prisma.publicPreKey.createMany(
                 oneTimePreKeyCreate
             )
-
+            return value.count;
         })
 })

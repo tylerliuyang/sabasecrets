@@ -15,9 +15,15 @@ export default function Message() {
   const [other, setOther] = useState<string>("");
   const [messages, setMessages] = useState<string[]>([]);
 
-  const { refetch: refetchBundle } = trpc.getPreKeyBundle.procedure.useQuery(
+  const { refetch: refetchKeys } = trpc.getPreKeyBundle.procedure.useQuery(
     {
       address: other,
+    },
+    { enabled: false }
+  );
+  const { refetch: refetchKeysSelf } = trpc.getPreKeyBundle.procedure.useQuery(
+    {
+      address: name,
     },
     { enabled: false }
   );
@@ -25,7 +31,7 @@ export default function Message() {
   const mutationSendMessage = trpc.storeMessage.procedure.useMutation();
   const { refetch: refetchMessagesSent } = trpc.getMessages.procedure.useQuery(
     {
-      reciever: other,
+      reciever: name,
       sender: name,
     },
     { enabled: false }
@@ -61,14 +67,20 @@ export default function Message() {
       <input
         type="button"
         onClick={async () => {
-          const { data } = await refetchBundle();
-          const value = await encryptMessage(other, message, data!);
+          const { data: otherKey } = await refetchKeys();
+          const sentMessage = await encryptMessage(other, message, otherKey!);
           mutationSendMessage.mutate({
-            message: JSON.stringify(value.body!),
+            message: JSON.stringify(sentMessage.body!),
             sender: name,
             reciever: other,
           });
-
+          const { data: myKey } = await refetchKeysSelf();
+          const selfMessage = await encryptMessage(other, message, myKey!);
+          mutationSendMessage.mutate({
+            message: JSON.stringify(selfMessage.body!),
+            sender: name,
+            reciever: name,
+          });
           setMessages([...messages, message]);
         }}
         value="submit"

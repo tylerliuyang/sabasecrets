@@ -9,6 +9,7 @@ const prisma = new PrismaClient()
 export const getPreKeyBundleRouter = router({
     procedure: GetPreKeyProcedure.query(async ({ input }) => {
         const PreKeyBundle = await prisma.publicPreKey.findFirst({ where: { directoryName: input.address } })
+        console.log(PreKeyBundle?.id);
         await prisma.publicPreKey.delete({
             where: { id: PreKeyBundle?.id }
         })
