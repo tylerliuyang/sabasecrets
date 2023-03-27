@@ -6,9 +6,10 @@ import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/signalStore";
 import { getMessages, sendMessage } from "./api";
 import { loadIdentity } from "../identity/loadIdentity";
+import { Message } from "@prisma/client";
 
 
-export async function encryptAndSendMessage(to: string, message: string, value: PublicPreKeyBundle): Promise<void> {
+export async function encryptMessage(to: string, message: string, value: PublicPreKeyBundle) {
     const bundle: DeviceType = deserializeKeyBundle(value);
 
     let store = new SignalProtocolStore();
@@ -29,24 +30,19 @@ export async function encryptAndSendMessage(to: string, message: string, value: 
     // addMessageToSession(to, cm)
     const signalMessage = await cipher.encrypt(new TextEncoder().encode(JSON.stringify(cm)).buffer)
     // sendSignalProtocolMessage(to, window.localStorage.getItem("name"), signalMessage)
-    sendMessage(to, signalMessage.body!);
+    return signalMessage;
+    // sendMessage(to, signalMessage.body!);
 }
 
-interface res {
-    message: [string]
-}
 
-export async function getMessagesAndDecrypt(address: string) {
-    const res = await getMessages(address);
-    const encodedmessages: res = await res.json();
-
+export async function getMessagesAndDecrypt(encodedmessages: Message[], address: string) {
     let store = new SignalProtocolStore();
     loadIdentity(store);
     const cipher = new SessionCipher(store, new SignalProtocolAddress(address, 1))
 
     const decodedmessages: string[] = [];
-    for (let i in encodedmessages.message) {
-        const plaintextBytes = await cipher.decryptPreKeyWhisperMessage(encodedmessages.message[i], 'binary')
+    for (let i in encodedmessages) {
+        const plaintextBytes = await cipher.decryptPreKeyWhisperMessage(JSON.parse(encodedmessages[i].message), 'binary')
         const plaintext = new TextDecoder().decode(new Uint8Array(plaintextBytes))
         let cm = JSON.parse(plaintext) as ProcessedChatMessage
         decodedmessages.push(cm.body);

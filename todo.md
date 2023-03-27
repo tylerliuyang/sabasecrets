@@ -1,17 +1,20 @@
-1. Check if message franking is built into libsignal
+tyler priorities:
+[] make message refresh fetch both sent and recieved messages (currently only fetches receieved)
+[] sort messages by timestamp
+[] group chats with multiple pairwise channels (read project proposal for why)
+[] add wss support for realtime messages
 
-1.5. Change storage to database for persistent state
+---
 
-2. refactor code (specifically make locations and such consistent)
+[] Check if message franking is built into libsignal
+[] work on ui
+[] getting messages based on time/chat/user
 
-3. try to add interfaces and type more things, especially api (maybe trpc in the future?)
+---
 
-4. work on ui
-
-5. add wss support for realtime messages
-
-6. getting messages based on time/chat/user
-
-7. chat rooms vs global chat
-
-8. group chats with multi-party diffie hellman? (might be really hard with libsignal protocol)
+[X] Change storage to database for persistent state
+[X] (for now?) (specifically make locations and such consistent)
+[X] switch to tRPC
+[X] switch to supabase completely
+[X] create pairwise channels
+[X] improve fetching efficiency (have the sender and receiver be keys for the database)
