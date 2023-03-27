@@ -23,7 +23,15 @@ export default function Message() {
   );
 
   const mutationSendMessage = trpc.storeMessage.procedure.useMutation();
-  const { refetch: refetchMessages } = trpc.getMessages.procedure.useQuery(
+  const { refetch: refetchMessagesSent } = trpc.getMessages.procedure.useQuery(
+    {
+      reciever: other,
+      sender: name,
+    },
+    { enabled: false }
+  );
+
+  const { refetch: refetchMessagesRecv } = trpc.getMessages.procedure.useQuery(
     {
       reciever: name,
       sender: other,
@@ -69,8 +77,11 @@ export default function Message() {
       <input
         type="button"
         onClick={async () => {
-          const { data } = await refetchMessages();
-          const messages = await getMessagesAndDecrypt(data!, name);
+          const { data: dataSent } = await refetchMessagesSent();
+          const { data: dataRecv } = await refetchMessagesRecv();
+
+          const data = [...dataSent!, ...dataRecv!];
+          const messages = await getMessagesAndDecrypt(data, name);
           setMessages(messages);
         }}
         value="refresh"
