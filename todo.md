@@ -1,8 +1,9 @@
 tyler priorities:
-[] make message refresh fetch both sent and recieved messages (currently only fetches receieved)
-[] sort messages by timestamp
 [] group chats with multiple pairwise channels (read project proposal for why)
 [] add wss support for realtime messages
+[] do the messaging correctly
+[] write up about DOS attacks (consuming all prekeys)
+[] add obfuscated group ids for each pairwise channel in groups to ensure fast database retrival without exposing group inclusion
 
 ---
 
@@ -18,3 +19,5 @@ tyler priorities:
 [X] switch to supabase completely
 [X] create pairwise channels
 [X] improve fetching efficiency (have the sender and receiver be keys for the database)
+[X] make message refresh fetch both sent and recieved messages (currently only fetches receieved)
+[X] sort messages by timestamp
