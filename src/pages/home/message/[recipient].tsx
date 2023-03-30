@@ -10,28 +10,45 @@ import { startSession } from "@/utility/session/startSession";
 import { loadIdentity } from "@/utility/identity/loadIdentity";
 import { MessageType } from "@privacyresearch/libsignal-protocol-typescript";
 
-const store = new SignalProtocolStore();
 // must load session info into store before usage
 const Messages = () => {
+  const [store] = useState(new SignalProtocolStore());
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<string[]>([]);
   const [name, setName] = useState<string>("");
-  const [reciever, setReciever] = useState<string>("");
+
+  async function start() {
+    const { data } = await refetchPreKey();
+    const ct = await startSession(store, recipient, data!);
+
+    // mutationSendMessage.mutate({
+    //   message: JSON.stringify(ct.body!),
+    //   type: ct.type,
+    //   reciever: recipient,
+    //   sender: name!,
+    // });
+  }
 
   useEffect(() => {
-    loadIdentity(store);
-
     const name = window.localStorage.getItem("name");
     setName(name === null ? "" : name);
+    loadIdentity(store);
   }, []);
 
-  const getPreKeyMutation = trpc.getPreKeyBundle.procedure.useMutation();
+  const router = useRouter();
+  const recipient =
+    typeof router.query.recipient === "string" ? router.query.recipient : "";
+
+  const { refetch: refetchPreKey } = trpc.getPreKeyBundle.procedure.useQuery(
+    { address: recipient },
+    { enabled: false }
+  );
 
   const mutationSendMessage = trpc.storeMessage.procedure.useMutation();
 
   const { refetch: refetchMessagesSent } = trpc.getMessages.procedure.useQuery(
     {
-      reciever: reciever,
+      reciever: recipient,
       sender: name,
     },
     { enabled: false }
@@ -40,49 +57,16 @@ const Messages = () => {
   const { refetch: refetchMessagesRecv } = trpc.getMessages.procedure.useQuery(
     {
       reciever: name,
-      sender: reciever,
+      sender: recipient,
     },
     { enabled: false }
   );
-
-  // gets the recipient from url
-  const router = useRouter();
-  if (router.isReady && reciever === "") {
-    const reciever =
-      typeof router.query.recipient === "string" ? router.query.recipient : "";
-    setReciever(reciever);
-  }
-
-  // once loaded, only get prekey *once*
-  if (
-    reciever !== "" &&
-    !getPreKeyMutation.isLoading &&
-    !getPreKeyMutation.isError &&
-    getPreKeyMutation.data === undefined
-  ) {
-    getPreKeyMutation.mutate({ address: reciever });
-    // getPreKeyMutation.
-  }
-
-  const [init, setInit] = useState(false);
-  // once mutation is done, start session!
-  if (getPreKeyMutation.data !== undefined && !init) {
-    setInit(true);
-    startSession(store, reciever, getPreKeyMutation.data).then((ct) => {
-      mutationSendMessage.mutate({
-        message: JSON.stringify(ct.body!),
-        type: ct.type,
-        reciever: reciever,
-        sender: name,
-      });
-    });
-  }
 
   // router.isReady removes flashing from render
   if (name === "" && router.isReady) {
     return <div>Please login</div>;
   }
-  if (reciever === "" && router.isReady) {
+  if (recipient === "" && router.isReady) {
     return <div>Please input a string as the other user</div>;
   }
 
@@ -93,16 +77,23 @@ const Messages = () => {
 
       <input
         type="button"
+        onClick={() => {
+          start();
+        }}
+        value="start session"
+      ></input>
+      <input
+        type="button"
         onClick={async () => {
           const sentMessage: MessageType = await encryptMessage(
-            reciever,
+            recipient,
             message,
             store
           );
           mutationSendMessage.mutate({
             message: JSON.stringify(sentMessage.body!),
             sender: name,
-            reciever: reciever,
+            reciever: recipient,
             type: sentMessage.type,
           });
           setMessages([...messages, message]);
@@ -117,7 +108,7 @@ const Messages = () => {
           const { data: dataRecv } = await refetchMessagesRecv();
 
           const data = [...dataSent!, ...dataRecv!];
-          const messages = await getMessagesAndDecrypt(data, name, store);
+          const messages = await getMessagesAndDecrypt(data, recipient, store);
           setMessages(messages);
         }}
         value="refresh"

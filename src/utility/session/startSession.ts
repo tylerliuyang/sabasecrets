@@ -13,11 +13,11 @@ export async function startSession(store: SignalProtocolStore, recipient: string
     // once a session is created and saved in the store, or rejects if the
     // identityKey differs from a previously seen identity for this address.
     const bundle = deserializeKeyBundle(key);
-    const session = await sessionBuilder.processPreKey(bundle);
+    await sessionBuilder.processPreKey(bundle);
 
     // start session with message send
     const senderSessionCipher = new SessionCipher(store, recipientAddress)
-    const ciphertext = await senderSessionCipher.encrypt(new Uint8Array([0, 0, 0, 0]).buffer)
-    return ciphertext;
+    // const ciphertext = await senderSessionCipher.encrypt(new Uint8Array([0, 0, 0, 0]).buffer)
+    // return ciphertext;
     // The message is encrypted, now send it however you like.
 }

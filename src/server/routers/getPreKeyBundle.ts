@@ -8,7 +8,7 @@ import { GetPreKeyProcedure } from './zod_types'
 const prisma = new PrismaClient()
 
 export const getPreKeyBundleRouter = router({
-    procedure: GetPreKeyProcedure.mutation(async ({ input }) => {
+    procedure: GetPreKeyProcedure.query(async ({ input }) => {
         const PreKeyBundle = await prisma.publicPreKey.findFirst({ where: { directoryName: input.address } })
         if (PreKeyBundle === null) {
             throw new trpc.TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No more keys!" });
