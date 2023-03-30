@@ -1,4 +1,5 @@
 import { PublicPreKeyBundle } from '@/utility/serialize/FullDirectoryEntry'
+import * as trpc from '@trpc/server';
 import { PrismaClient } from '@prisma/client'
 import { procedure, router } from '../trpc'
 import { GetPreKeyProcedure } from './zod_types'
@@ -7,9 +8,12 @@ import { GetPreKeyProcedure } from './zod_types'
 const prisma = new PrismaClient()
 
 export const getPreKeyBundleRouter = router({
-    procedure: GetPreKeyProcedure.query(async ({ input }) => {
+    procedure: GetPreKeyProcedure.mutation(async ({ input }) => {
         const PreKeyBundle = await prisma.publicPreKey.findFirst({ where: { directoryName: input.address } })
-        console.log(PreKeyBundle?.id);
+        if (PreKeyBundle === null) {
+            throw new trpc.TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No more keys!" });
+        }
+
         await prisma.publicPreKey.delete({
             where: { id: PreKeyBundle?.id }
         })
