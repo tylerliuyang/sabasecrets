@@ -60,7 +60,8 @@ export const storeMessage = procedure.input(
     z.object({
         reciever: z.string(),
         sender: z.string(),
-        message: z.string()
+        message: z.string(),
+        type: z.number()
     })
 )
 

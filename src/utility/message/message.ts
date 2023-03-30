@@ -4,7 +4,6 @@ import { DeviceType, SessionBuilder, SessionCipher, SignalProtocolAddress } from
 import { ProcessedChatMessage } from "./types";
 import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/signalStore";
-import { getMessages, sendMessage } from "./api";
 import { loadIdentity } from "../identity/loadIdentity";
 import { Message } from "@prisma/client";
 
@@ -31,7 +30,12 @@ export async function getMessagesAndDecrypt(encodedmessages: Message[], address:
 
     const decodedmessages: [string, number][] = [];
     for (let i in encodedmessages) {
-        const plaintextBytes = await cipher.decryptPreKeyWhisperMessage(JSON.parse(encodedmessages[i].message), 'binary')
+        let plaintextBytes = undefined;
+        if (encodedmessages[i].type === 3) {
+            plaintextBytes = await cipher.decryptPreKeyWhisperMessage(JSON.parse(encodedmessages[i].message), 'binary')
+        } else { // (encodedmessages[i].type === 1)
+            plaintextBytes = await cipher.decryptWhisperMessage(JSON.parse(encodedmessages[i].message), 'binary')
+        }
         const plaintext = new TextDecoder().decode(new Uint8Array(plaintextBytes))
         let cm = JSON.parse(plaintext) as ProcessedChatMessage
         decodedmessages.push([cm.body, cm.timestamp]);

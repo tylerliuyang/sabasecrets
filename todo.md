@@ -1,4 +1,5 @@
 tyler priorities:
+[] from libsignal "Ciphertexts come in two flavors: WhisperMessage and PreKeyWhisperMessage."
 [] group chats with multiple pairwise channels (read project proposal for why)
 [] add wss support for realtime messages
 [] do the messaging correctly

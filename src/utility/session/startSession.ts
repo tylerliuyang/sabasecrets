@@ -3,7 +3,7 @@ import { PublicPreKeyBundle } from "../serialize/FullDirectoryEntry"
 import { deserializeKeyBundle } from "../serialize/serialize"
 import { SignalProtocolStore } from "../signalStore"
 
-export async function startSession(store: SignalProtocolStore, recipient: string, key: PublicPreKeyBundle): Promise<void> {
+export async function startSession(store: SignalProtocolStore, recipient: string, key: PublicPreKeyBundle) {
     const recipientAddress = new SignalProtocolAddress(recipient, 1)
 
     // Instantiate a SessionBuilder for a remote recipientId + deviceId tuple.
@@ -14,4 +14,10 @@ export async function startSession(store: SignalProtocolStore, recipient: string
     // identityKey differs from a previously seen identity for this address.
     const bundle = deserializeKeyBundle(key);
     const session = await sessionBuilder.processPreKey(bundle);
+
+    // start session with message send
+    const senderSessionCipher = new SessionCipher(store, recipientAddress)
+    const ciphertext = await senderSessionCipher.encrypt(new Uint8Array([0, 0, 0, 0]).buffer)
+    return ciphertext;
+    // The message is encrypted, now send it however you like.
 }

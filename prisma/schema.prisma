@@ -46,5 +46,8 @@ model Message {
   sender            String
   receiver          String
 
+  // 3 = PreKeyWhipserMessage, 1 = WhisperMessage
+  type Int
+
   message String
 }

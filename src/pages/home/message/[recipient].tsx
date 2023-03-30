@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { Inter } from "next/font/google";
 import { useEffect, useState } from "react";
 import { SignalProtocolStore } from "@/utility/signalStore";
 import { trpc } from "@/utility/trpc";
@@ -9,8 +8,9 @@ import {
 } from "@/utility/message/message";
 import { startSession } from "@/utility/session/startSession";
 import { loadIdentity } from "@/utility/identity/loadIdentity";
+import { MessageType } from "@privacyresearch/libsignal-protocol-typescript";
 
-let store = new SignalProtocolStore();
+const store = new SignalProtocolStore();
 // must load session info into store before usage
 const Messages = () => {
   const [message, setMessage] = useState<string>("");
@@ -57,14 +57,25 @@ const Messages = () => {
   if (
     reciever !== "" &&
     !getPreKeyMutation.isLoading &&
+    !getPreKeyMutation.isError &&
     getPreKeyMutation.data === undefined
   ) {
     getPreKeyMutation.mutate({ address: reciever });
+    // getPreKeyMutation.
   }
 
+  const [init, setInit] = useState(false);
   // once mutation is done, start session!
-  if (getPreKeyMutation.data !== undefined) {
-    startSession(store, reciever, getPreKeyMutation.data);
+  if (getPreKeyMutation.data !== undefined && !init) {
+    setInit(true);
+    startSession(store, reciever, getPreKeyMutation.data).then((ct) => {
+      mutationSendMessage.mutate({
+        message: JSON.stringify(ct.body!),
+        type: ct.type,
+        reciever: reciever,
+        sender: name,
+      });
+    });
   }
 
   // router.isReady removes flashing from render
@@ -83,11 +94,16 @@ const Messages = () => {
       <input
         type="button"
         onClick={async () => {
-          const sentMessage = await encryptMessage(reciever, message, store);
+          const sentMessage: MessageType = await encryptMessage(
+            reciever,
+            message,
+            store
+          );
           mutationSendMessage.mutate({
             message: JSON.stringify(sentMessage.body!),
             sender: name,
             reciever: reciever,
+            type: sentMessage.type,
           });
           setMessages([...messages, message]);
         }}
@@ -97,13 +113,10 @@ const Messages = () => {
       <input
         type="button"
         onClick={async () => {
-          // const { data: dataSent } = await refetchMessagesSent();
+          const { data: dataSent } = await refetchMessagesSent();
           const { data: dataRecv } = await refetchMessagesRecv();
 
-          const data = [
-            // ...dataSent!,
-            ...dataRecv!,
-          ];
+          const data = [...dataSent!, ...dataRecv!];
           const messages = await getMessagesAndDecrypt(data, name, store);
           setMessages(messages);
         }}
