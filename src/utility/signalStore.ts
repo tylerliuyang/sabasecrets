@@ -39,6 +39,10 @@ export class SignalProtocolStore implements StorageType {
     constructor() {
         this._store = {}
     }
+
+    expose() {
+        return this._store;
+    }
     //
     get(key: string, defaultValue: StoreValue): StoreValue {
         if (key === null || key === undefined) throw new Error('Tried to get value for undefined/null key')

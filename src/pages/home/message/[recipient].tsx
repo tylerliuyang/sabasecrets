@@ -10,6 +10,10 @@ import {
 import { startSession } from "@/utility/session/startSession";
 import { loadIdentity } from "@/utility/identity/loadIdentity";
 import { MessageType } from "@privacyresearch/libsignal-protocol-typescript";
+import {
+  restoreMessages,
+  storeMessages,
+} from "@/utility/message/localstorage/localstorage";
 
 export type ChatMessage = {
   message: string;
@@ -17,8 +21,12 @@ export type ChatMessage = {
   sender: string;
 };
 
+export interface props {
+  recipient: string;
+}
 // must load session info into store before usage
-const Messages = () => {
+const Messages = (props: props) => {
+  const recipient = props.recipient;
   const [store] = useState(new SignalProtocolStore());
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -30,15 +38,25 @@ const Messages = () => {
     setName(name === null ? "" : name);
     loadIdentity(store);
     const { messages, timestamp } = restoreMessages(recipient);
+    setMessages(messages);
+    setTimestamp(timestamp);
+
+    const session = window.localStorage.getItem(recipient + "session");
+    if (typeof session === "string") {
+      store.storeSession(recipient + ".1", session);
+    }
   }, []);
 
   useEffect(() => {
     storeMessages(messages, recipient, timestamp);
+    console.log(store.expose());
+    store.loadSession(recipient + ".1").then((value) => {
+      if (typeof value === "string") {
+        window.localStorage.setItem(recipient + "session", value);
+      }
+    });
+    store.loadIdentityKey(recipient);
   }, [messages, timestamp]);
-
-  const router = useRouter();
-  const recipient =
-    typeof router.query.recipient === "string" ? router.query.recipient : "";
 
   const { refetch: refetchPreKey } = trpc.getPreKeyBundle.procedure.useQuery(
     { address: recipient },
@@ -56,11 +74,10 @@ const Messages = () => {
     { enabled: false }
   );
 
-  // router.isReady removes flashing from render
-  if (name === "" && router.isReady) {
+  if (name === "") {
     return <div>Please login</div>;
   }
-  if (recipient === "" && router.isReady) {
+  if (recipient === "") {
     return <div>Please input a string as the other user</div>;
   }
 
@@ -130,10 +147,10 @@ const Messages = () => {
       <table>
         {messages.map((message, i) => {
           return (
-            <tr>
-              <th key={i}>{message.sender}</th>
-              <th key={i}>{message.message}</th>
-              <th key={i}>{message.timestamp}</th>
+            <tr key={i}>
+              <th key={i + "sender"}>{message.sender}</th>
+              <th key={i + "message"}>{message.message}</th>
+              <th key={i + "timestamp"}>{message.timestamp}</th>
             </tr>
           );
         })}
