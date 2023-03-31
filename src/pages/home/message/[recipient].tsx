@@ -5,35 +5,36 @@ import { trpc } from "@/utility/trpc";
 import {
   encryptMessage,
   getMessagesAndDecrypt,
+  sortMessages,
 } from "@/utility/message/message";
 import { startSession } from "@/utility/session/startSession";
 import { loadIdentity } from "@/utility/identity/loadIdentity";
 import { MessageType } from "@privacyresearch/libsignal-protocol-typescript";
 
+export type ChatMessage = {
+  message: string;
+  timestamp: number;
+  sender: string;
+};
+
 // must load session info into store before usage
 const Messages = () => {
   const [store] = useState(new SignalProtocolStore());
   const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [name, setName] = useState<string>("");
-
-  async function start() {
-    const { data } = await refetchPreKey();
-    const ct = await startSession(store, recipient, data!);
-
-    // mutationSendMessage.mutate({
-    //   message: JSON.stringify(ct.body!),
-    //   type: ct.type,
-    //   reciever: recipient,
-    //   sender: name!,
-    // });
-  }
+  const [timestamp, setTimestamp] = useState<number>(0);
 
   useEffect(() => {
     const name = window.localStorage.getItem("name");
     setName(name === null ? "" : name);
     loadIdentity(store);
+    const { messages, timestamp } = restoreMessages(recipient);
   }, []);
+
+  useEffect(() => {
+    storeMessages(messages, recipient, timestamp);
+  }, [messages, timestamp]);
 
   const router = useRouter();
   const recipient =
@@ -46,18 +47,11 @@ const Messages = () => {
 
   const mutationSendMessage = trpc.storeMessage.procedure.useMutation();
 
-  const { refetch: refetchMessagesSent } = trpc.getMessages.procedure.useQuery(
-    {
-      reciever: recipient,
-      sender: name,
-    },
-    { enabled: false }
-  );
-
   const { refetch: refetchMessagesRecv } = trpc.getMessages.procedure.useQuery(
     {
       reciever: name,
       sender: recipient,
+      after: timestamp,
     },
     { enabled: false }
   );
@@ -75,13 +69,17 @@ const Messages = () => {
       {name}
       <input onChange={(e) => setMessage(e.target.value)}></input>
 
+      {/* starts session */}
       <input
         type="button"
-        onClick={() => {
-          start();
+        onClick={async () => {
+          const { data } = await refetchPreKey();
+          await startSession(store, recipient, data!);
         }}
         value="start session"
       ></input>
+
+      {/* sends message and stores message locally! */}
       <input
         type="button"
         onClick={async () => {
@@ -95,28 +93,51 @@ const Messages = () => {
             sender: name,
             reciever: recipient,
             type: sentMessage.type,
+            timestamp: Date.now(),
           });
-          setMessages([...messages, message]);
+          setMessages([
+            ...messages,
+            {
+              message: message,
+              sender: name,
+              timestamp: Date.now(),
+            },
+          ]);
         }}
         value="submit"
       ></input>
 
+      {/* gets messages in inbox and decrypts */}
       <input
         type="button"
         onClick={async () => {
-          const { data: dataSent } = await refetchMessagesSent();
           const { data: dataRecv } = await refetchMessagesRecv();
-
-          const data = [...dataSent!, ...dataRecv!];
-          const messages = await getMessagesAndDecrypt(data, recipient, store);
-          setMessages(messages);
+          setTimestamp(
+            dataRecv!.reduce((a, b) => {
+              return Math.max(a, b.timestamp);
+            }, -Infinity)
+          );
+          const newMessages = await getMessagesAndDecrypt(
+            dataRecv!,
+            recipient,
+            store
+          );
+          const sorted = sortMessages([...newMessages, ...messages]);
+          setMessages(sorted);
         }}
         value="refresh"
       ></input>
-
-      {messages.map((message, i) => {
-        return <h1 key={i}>{message}</h1>;
-      })}
+      <table>
+        {messages.map((message, i) => {
+          return (
+            <tr>
+              <th key={i}>{message.sender}</th>
+              <th key={i}>{message.message}</th>
+              <th key={i}>{message.timestamp}</th>
+            </tr>
+          );
+        })}
+      </table>
     </div>
   );
 };

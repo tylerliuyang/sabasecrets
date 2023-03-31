@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/signalStore";
 import { loadIdentity } from "../identity/loadIdentity";
 import { Message } from "@prisma/client";
+import { ChatMessage } from "@/pages/home/message/[recipient]";
 
 
 export async function encryptMessage(to: string, message: string, store: SignalProtocolStore) {
@@ -28,7 +29,7 @@ export async function encryptMessage(to: string, message: string, store: SignalP
 export async function getMessagesAndDecrypt(encodedmessages: Message[], address: string, store: SignalProtocolStore) {
     const cipher = new SessionCipher(store, new SignalProtocolAddress(address, 1))
 
-    const decodedmessages: [string, number][] = [];
+    const decodedmessages: ProcessedChatMessage[] = [];
     for (let i in encodedmessages) {
         let plaintextBytes = undefined;
         if (encodedmessages[i].type === 3) {
@@ -38,10 +39,17 @@ export async function getMessagesAndDecrypt(encodedmessages: Message[], address:
         }
         const plaintext = new TextDecoder().decode(new Uint8Array(plaintextBytes))
         let cm = JSON.parse(plaintext) as ProcessedChatMessage
-        decodedmessages.push([cm.body, cm.timestamp]);
+        decodedmessages.push(cm);
     }
 
-    decodedmessages.sort((a, b) => { return a[1] - b[1] });
-    const orderedmessages = decodedmessages.map((a) => a[0]);
-    return orderedmessages
+    // sorting is not needed as long as you sort later
+    // decodedmessages.sort((a, b) => { return a.timestamp - b.timestamp });
+    const orderedmessages: ChatMessage[] = decodedmessages.map((a) => { return { message: a.body, sender: a.from, timestamp: a.timestamp } });
+    return orderedmessages;
+}
+
+
+export const sortMessages = (messages: ChatMessage[]) => {
+    messages.sort((a, b) => { return a.timestamp - b.timestamp });
+    return messages;
 }

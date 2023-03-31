@@ -61,7 +61,8 @@ export const storeMessage = procedure.input(
         reciever: z.string(),
         sender: z.string(),
         message: z.string(),
-        type: z.number()
+        type: z.number(),
+        timestamp: z.number()
     })
 )
 
@@ -69,6 +70,7 @@ export const getMessages = procedure.input(
     z.object({
         reciever: z.string(),
         sender: z.string(),
+        after: z.optional(z.number())
     })
 )
 
