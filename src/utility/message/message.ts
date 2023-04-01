@@ -4,21 +4,14 @@ import { DeviceType, SessionBuilder, SessionCipher, SignalProtocolAddress } from
 import { ProcessedChatMessage } from "./types";
 import { v4 as uuid } from 'uuid';
 import { SignalProtocolStore } from "@/utility/signalStore";
-import { getMessages, sendMessage } from "./api";
 import { loadIdentity } from "../identity/loadIdentity";
 import { Message } from "@prisma/client";
+import { ChatMessage } from "@/pages/home/message/[recipient]";
 
 
-export async function encryptMessage(to: string, message: string, value: PublicPreKeyBundle) {
-    const bundle: DeviceType = deserializeKeyBundle(value);
-
-    let store = new SignalProtocolStore();
-    loadIdentity(store);
-    const address = new SignalProtocolAddress(to, 1)
-
-    const sessionBuilder = new SessionBuilder(store, address).processPreKey(bundle);
-
-    const cipher = new SessionCipher(store, address)
+export async function encryptMessage(to: string, message: string, store: SignalProtocolStore) {
+    const address = new SignalProtocolAddress(to, 1);
+    const cipher = new SessionCipher(store, address);
 
     const cm: ProcessedChatMessage = {
         id: uuid(),
@@ -26,26 +19,37 @@ export async function encryptMessage(to: string, message: string, value: PublicP
         from: window.localStorage.getItem("name")!,
         timestamp: Date.now(),
         body: message,
-    }
-    // addMessageToSession(to, cm)
-    const signalMessage = await cipher.encrypt(new TextEncoder().encode(JSON.stringify(cm)).buffer)
-    // sendSignalProtocolMessage(to, window.localStorage.getItem("name"), signalMessage)
+    };
+
+    const signalMessage = await cipher.encrypt(new TextEncoder().encode(JSON.stringify(cm)).buffer);
     return signalMessage;
-    // sendMessage(to, signalMessage.body!);
 }
 
 
-export async function getMessagesAndDecrypt(encodedmessages: Message[], address: string) {
-    let store = new SignalProtocolStore();
-    loadIdentity(store);
+export async function getMessagesAndDecrypt(encodedmessages: Message[], address: string, store: SignalProtocolStore) {
     const cipher = new SessionCipher(store, new SignalProtocolAddress(address, 1))
 
-    const decodedmessages: string[] = [];
+    const decodedmessages: ProcessedChatMessage[] = [];
     for (let i in encodedmessages) {
-        const plaintextBytes = await cipher.decryptPreKeyWhisperMessage(JSON.parse(encodedmessages[i].message), 'binary')
+        let plaintextBytes = undefined;
+        if (encodedmessages[i].type === 3) {
+            plaintextBytes = await cipher.decryptPreKeyWhisperMessage(JSON.parse(encodedmessages[i].message), 'binary')
+        } else { // (encodedmessages[i].type === 1)
+            plaintextBytes = await cipher.decryptWhisperMessage(JSON.parse(encodedmessages[i].message), 'binary')
+        }
         const plaintext = new TextDecoder().decode(new Uint8Array(plaintextBytes))
         let cm = JSON.parse(plaintext) as ProcessedChatMessage
-        decodedmessages.push(cm.body);
+        decodedmessages.push(cm);
     }
-    return decodedmessages
+
+    // sorting is not needed as long as you sort later
+    // decodedmessages.sort((a, b) => { return a.timestamp - b.timestamp });
+    const orderedmessages: ChatMessage[] = decodedmessages.map((a) => { return { message: a.body, sender: a.from, timestamp: a.timestamp } });
+    return orderedmessages;
+}
+
+
+export const sortMessages = (messages: ChatMessage[]) => {
+    messages.sort((a, b) => { return a.timestamp - b.timestamp });
+    return messages;
 }

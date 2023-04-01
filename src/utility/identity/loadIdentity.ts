@@ -1,16 +1,4 @@
 import { SignalProtocolStore } from "@/utility/signalStore";
-import {
-    KeyHelper,
-    SignedPublicPreKeyType,
-    SignalProtocolAddress,
-    SessionBuilder,
-    PreKeyType,
-    SessionCipher,
-    MessageType,
-    KeyPairType,
-} from "@privacyresearch/libsignal-protocol-typescript";
-import { deserializeKeyRegistrationBundle, serializeKeyRegistrationBundle } from "../serialize/serialize";
-import { FullDirectoryEntry } from "../serialize/FullDirectoryEntry";
 import { getKeyPair, getKeyPairs } from "./localstorage/localstorage";
 
 export const loadIdentity = async (signalStore: SignalProtocolStore) => {

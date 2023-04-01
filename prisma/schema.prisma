@@ -45,6 +45,9 @@ model Message {
   recieverDirectory Directory @relation(fields: [receiver], references: [name], name: "reciever")
   sender            String
   receiver          String
+  timestamp         BigInt
+  // 3 = PreKeyWhipserMessage, 1 = WhisperMessage
+  type              Int
 
   message String
 }

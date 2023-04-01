@@ -19,6 +19,7 @@ import { trpc } from "../trpc";
 export const createID = async (name: string,
     //  signalStore: SignalProtocolStore
 ) => {
+    window.localStorage.clear();
     window.localStorage.setItem('name', name);
     const registrationId = KeyHelper.generateRegistrationId();
     window.localStorage.setItem(`registrationID`, registrationId.toString());

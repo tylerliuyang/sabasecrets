@@ -14,6 +14,8 @@ export const storeMessageRouter = router({
                 message: input.message,
                 receiver: input.reciever,
                 sender: input.sender,
+                type: input.type,
+                timestamp: input.timestamp
             }
         });
     })
