@@ -9,11 +9,11 @@ export const storeMessages = (
     convo: string,
     timestamp: number
 ): void => {
-    console.log(messages.length, timestamp);
     if (messages.length === 0 || timestamp === null) { return }
     window.localStorage.setItem(convo + "messages", JSON.stringify(messages));
     window.localStorage.setItem(convo + "time", JSON.stringify(timestamp));
 };
+
 
 export const restoreMessages = (convo: string) => {
     const messages = window.localStorage.getItem(convo + "messages");

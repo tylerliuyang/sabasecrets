@@ -14,6 +14,7 @@ import {
   restoreMessages,
   storeMessages,
 } from "@/utility/message/localstorage/localstorage";
+import { loadSession, storeSession } from "@/utility/session/helper";
 
 export type ChatMessage = {
   message: string;
@@ -24,44 +25,40 @@ export type ChatMessage = {
 export interface props {
   recipient: string;
 }
+
+const Loader = () => {
+  const router = useRouter();
+  const recipient =
+    typeof router.query.recipient === "string" ? router.query.recipient : "";
+
+  if (recipient === "" || !router.isReady) {
+    return <div>rendering...</div>;
+  }
+  return <Messages recipient={recipient}></Messages>;
+};
 // must load session info into store before usage
 const Messages = (props: props) => {
   const recipient = props.recipient;
   const [store] = useState(new SignalProtocolStore());
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [name, setName] = useState<string>("");
   const [timestamp, setTimestamp] = useState<number>(0);
 
+  let _name = window.localStorage.getItem("name");
+  const name = typeof _name === "string" ? _name : "";
+
   useEffect(() => {
-    const name = window.localStorage.getItem("name");
-    setName(name === null ? "" : name);
-    loadIdentity(store);
     const { messages, timestamp } = restoreMessages(recipient);
     setMessages(messages);
     setTimestamp(timestamp);
-
-    const session = window.localStorage.getItem(recipient + "session");
-    if (typeof session === "string") {
-      store.storeSession(recipient + ".1", session);
-    }
+    loadIdentity(store);
+    loadSession(recipient, store);
   }, []);
 
   useEffect(() => {
     storeMessages(messages, recipient, timestamp);
-    console.log(store.expose());
-    store.loadSession(recipient + ".1").then((value) => {
-      if (typeof value === "string") {
-        window.localStorage.setItem(recipient + "session", value);
-      }
-    });
-    store.loadIdentityKey(recipient);
+    storeSession(recipient, store);
   }, [messages, timestamp]);
-
-  const { refetch: refetchPreKey } = trpc.getPreKeyBundle.procedure.useQuery(
-    { address: recipient },
-    { enabled: false }
-  );
 
   const mutationSendMessage = trpc.storeMessage.procedure.useMutation();
 
@@ -85,16 +82,6 @@ const Messages = (props: props) => {
     <div>
       {name}
       <input onChange={(e) => setMessage(e.target.value)}></input>
-
-      {/* starts session */}
-      <input
-        type="button"
-        onClick={async () => {
-          const { data } = await refetchPreKey();
-          await startSession(store, recipient, data!);
-        }}
-        value="start session"
-      ></input>
 
       {/* sends message and stores message locally! */}
       <input
@@ -129,6 +116,9 @@ const Messages = (props: props) => {
         type="button"
         onClick={async () => {
           const { data: dataRecv } = await refetchMessagesRecv();
+          if (dataRecv?.length === 0) {
+            return;
+          }
           setTimestamp(
             dataRecv!.reduce((a, b) => {
               return Math.max(a, b.timestamp);
@@ -144,6 +134,7 @@ const Messages = (props: props) => {
         }}
         value="refresh"
       ></input>
+
       <table>
         {messages.map((message, i) => {
           return (
@@ -159,4 +150,4 @@ const Messages = (props: props) => {
   );
 };
 
-export default Messages;
+export default Loader;
