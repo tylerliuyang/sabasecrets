@@ -25,8 +25,12 @@ export async function encryptMessage(to: string, message: string, store: SignalP
     return signalMessage;
 }
 
+export type MinMessage = {
+    type: number
+    message: string
+}
 
-export async function getMessagesAndDecrypt(encodedmessages: Message[], address: string, store: SignalProtocolStore) {
+export async function getMessagesAndDecrypt(encodedmessages: MinMessage[], address: string, store: SignalProtocolStore) {
     const cipher = new SessionCipher(store, new SignalProtocolAddress(address, 1))
 
     const decodedmessages: ProcessedChatMessage[] = [];
