@@ -88,6 +88,7 @@ const Messages = (props: props) => {
         recipient,
         store
       );
+      // this eats whatever messages are already existing since messages is passed by value not reference?
       setTimestamp(newMessage[0].timestamp);
       console.log(messages);
       setMessages([...messages, newMessage[0]]);
