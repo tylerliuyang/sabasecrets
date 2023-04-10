@@ -8,12 +8,13 @@ import {
   getMessagesAndDecrypt,
   sortMessages,
 } from "@/utility/message/message";
-import { startSession } from "@/utility/session/startSession";
 import { loadIdentity } from "@/utility/identity/loadIdentity";
 import { MessageType } from "@privacyresearch/libsignal-protocol-typescript";
 import {
+  getTimeStamp,
   restoreMessages,
   storeMessages,
+  storeTimeStamp,
 } from "@/utility/message/localstorage/localstorage";
 import { loadSession, storeSession } from "@/utility/session/helper";
 import {
@@ -21,22 +22,12 @@ import {
   initChannel,
   sendWSSMessage,
 } from "@/utility/websockets/websocket";
-import { RealtimeChannel } from "@supabase/supabase-js";
-import { Message } from "@prisma/client";
-
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
 
 export type ChatMessage = {
   message: string;
   timestamp: number;
   sender: string;
 };
-
-export interface props {
-  recipient: string;
-}
 
 const Loader = () => {
   const router = useRouter();
@@ -49,37 +40,42 @@ const Loader = () => {
   return <Messages recipient={recipient}></Messages>;
 };
 
+export interface props {
+  recipient: string;
+}
+
 // must load session info into store before usage
 const Messages = (props: props) => {
   const recipient = props.recipient;
   const [store] = useState(new SignalProtocolStore());
   const [message, setMessage] = useState<string>("");
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [timestamp, setTimestamp] = useState<number>(0);
-  const [channel, setChannel] = useState<RealtimeChannel>();
 
   let _name = window.localStorage.getItem("name");
   const name = typeof _name === "string" ? _name : "";
+  const { timestamp } = getTimeStamp(recipient);
 
   const { refetch: refetchMessagesRecv } = trpc.getMessages.procedure.useQuery(
-    {
-      reciever: name,
-      sender: recipient,
-      after: timestamp,
-    },
+    { reciever: name, sender: recipient, after: timestamp },
     { enabled: false }
   );
 
   useEffect(() => {
-    const { messages, timestamp } = restoreMessages(recipient);
+    // reloads messages
+    const { messages } = restoreMessages(recipient);
     setMessages(messages);
-    setTimestamp(timestamp);
+    // loads keys
     loadIdentity(store);
     loadSession(recipient, store);
   }, []);
 
   useEffect(() => {
-    setChannel(initChannel(recipient));
+    // starts wss channels
+    // sending
+    initChannel(recipient);
+    // recieving
+    initChannel(name);
 
     // handles websocket message with a handler
     handleWSSMessage(async (payload: MinMessage) => {
@@ -89,38 +85,39 @@ const Messages = (props: props) => {
         store
       );
       // this eats whatever messages are already existing since messages is passed by value not reference?
-      setTimestamp(newMessage[0].timestamp);
       console.log(messages);
+      storeTimeStamp(recipient, newMessage[0].timestamp);
       setMessages([...messages, newMessage[0]]);
-    }, initChannel(name));
+    }, name);
   }, []);
 
   useEffect(() => {
-    async function temp() {
+    async function OnLoadHandler() {
       const { data: dataRecv } = await refetchMessagesRecv();
-      if (dataRecv?.length === 0 || dataRecv === undefined) {
+      if (dataRecv === undefined || dataRecv.length === 0) {
         return;
       }
-      setTimestamp(
-        dataRecv!.reduce((a, b) => {
+      storeTimeStamp(
+        recipient,
+        dataRecv.reduce((a, b) => {
           return Math.max(a, b.timestamp);
         }, -Infinity)
       );
       const newMessages = await getMessagesAndDecrypt(
-        dataRecv!,
+        dataRecv,
         recipient,
         store
       );
       const sorted = sortMessages([...newMessages, ...messages]);
       setMessages(sorted);
     }
-    temp();
+    OnLoadHandler();
   }, []);
 
   useEffect(() => {
-    storeMessages(messages, recipient, timestamp);
+    storeMessages(messages, recipient);
     storeSession(recipient, store);
-  }, [messages, timestamp]);
+  }, [messages]);
 
   const mutationSendMessage = trpc.storeMessage.procedure.useMutation();
 
@@ -155,7 +152,7 @@ const Messages = (props: props) => {
           sendWSSMessage(
             JSON.stringify(sentMessage.body!),
             sentMessage.type,
-            channel!
+            recipient
           );
 
           setMessages([

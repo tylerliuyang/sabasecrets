@@ -32,7 +32,7 @@ export type MinMessage = {
 
 export async function getMessagesAndDecrypt(encodedmessages: MinMessage[], address: string, store: SignalProtocolStore) {
     const cipher = new SessionCipher(store, new SignalProtocolAddress(address, 1))
-
+    if (encodedmessages.length === 0) { return [] }
     const decodedmessages: ProcessedChatMessage[] = [];
     for (let i in encodedmessages) {
         let plaintextBytes = undefined;
